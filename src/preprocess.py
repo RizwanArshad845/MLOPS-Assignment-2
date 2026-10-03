@@ -12,8 +12,19 @@ x_train, y_train = raw["x_train"], raw["y_train"]
 x_test, y_test = raw["x_test"], raw["y_test"]
 
 # normalize pixel values to [0, 1]
-x_train = x_train.astype("float32") / 127.5 - 1.0
-x_test = x_test.astype("float32") / 127.5 - 1.0
+mode = params["normalization"]
+if mode == "minmax":
+    x_train = x_train.astype("float32") / 255.0
+    x_test = x_test.astype("float32") / 255.0
+elif mode == "symmetric":
+    x_train = x_train.astype("float32") / 127.5 - 1.0
+    x_test = x_test.astype("float32") / 127.5 - 1.0
+elif mode == "standardize":
+    mean, std = x_train.mean(), x_train.std()
+    x_train = (x_train.astype("float32") - mean) / std
+    x_test = (x_test.astype("float32") - mean) / std
+else:
+    raise ValueError(f"unknown normalization mode: {mode}")
 x_tr, x_val, y_tr, y_val = train_test_split(
     x_train, y_train,
     test_size=params["val_size"],
